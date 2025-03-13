@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 # Load dataset
-all_data_df = pd.read_csv("dashboard1/all_data.csv")
+all_data_df = pd.read_csv("all_data.csv")
 
 # Pastikan kolom dteday ada dan diubah ke tipe datetime
 all_data_df["dteday"] = pd.to_datetime(all_data_df["dteday"])
@@ -23,8 +23,8 @@ with st.sidebar:
     )
 
 # Filter data berdasarkan rentang waktu yang dipilih
-main_df = all_data_df[(all_data_df["dteday"] >= str(start_date)) & 
-                      (all_data_df["dteday"] <= str(end_date))]
+main_df = all_data_df[(all_data_df["dteday"] >= pd.to_datetime(start_date)) & 
+                      (all_data_df["dteday"] <= pd.to_datetime(end_date))]
 
 # Streamlit Dashboard
 st.header("Dashboard Penyewaan Sepeda")
@@ -37,24 +37,23 @@ st.metric("Total Rent", value=total_rent)
 # 2. Musim dengan Penyewaan Tertinggi
 st.subheader("Musim dengan Penyewaan Tertinggi")
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x="total_per_season", y="season", data=all_data_df, palette="Blues", ax=ax)
+sns.barplot(x=main_df.groupby("season")["total_rentals"].sum().values, 
+            y=main_df["season"].unique(), 
+            palette="Blues", ax=ax)
 st.pyplot(fig)
 
 # 3. Cuaca dengan Penyewaan Tertinggi
 st.subheader("Cuaca dengan Penyewaan Tertinggi")
 fig, ax = plt.subplots(figsize=(10, 6))
-sns.barplot(x="total_by_weather", y="weathersit", data=all_data_df, palette="Blues", ax=ax)
+sns.barplot(x=main_df.groupby("weathersit")["total_rentals"].sum().values, 
+            y=main_df["weathersit"].unique(), 
+            palette="Blues", ax=ax)
 st.pyplot(fig)
 
 # 4. Total Penyewaan Sepeda pada Hari Kerja vs Hari Libur
 st.subheader("Total Penyewaan Sepeda pada Hari Kerja vs Hari Libur")
 fig, ax = plt.subplots(figsize=(3, 4))
-sns.barplot(x="workingday", y="total_by_working_day", data=all_data_df, palette="Blues", ax=ax)
-st.pyplot(fig)
-
-# 5. Visualisasi Clustering
-st.subheader("Visualisasi Clustering Penyewaan Sepeda")
-fig, ax = plt.subplots(figsize=(12, 6))
-sns.scatterplot(data=all_data_df, x="dteday", y="total_rentals", hue="cluster", palette="Set2", ax=ax)
-plt.xticks(rotation=45)
+sns.barplot(x=main_df["workingday"].unique(),
+            y=main_df.groupby("workingday")["total_rentals"].sum().values, 
+            palette="Blues", ax=ax)
 st.pyplot(fig)
